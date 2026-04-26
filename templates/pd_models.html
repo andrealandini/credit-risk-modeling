@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+{% set active = "pd" %}
+{% block title %}PD Models — Credit Risk Analytics{% endblock %}
+
+{% block content %}
+<div class="page-wrapper">
+  <div class="page-header">
+    <div class="page-title">Probability of Default Models</div>
+    <div class="page-sub">Select a PD model, configure its parameters, and compute the output. The tornado chart shows factor sensitivity.</div>
+  </div>
+
+  <div class="split-layout">
+
+    <!-- LEFT: Model picker + param form -->
+    <div>
+      <div class="card mb-2">
+        <div class="card-title">Select PD Model</div>
+        <div class="model-picker">
+          {% for key, info in models.items() %}
+          <button class="model-btn pd-model-btn {% if loop.first %}active{% endif %}"
+                  data-model="{{ key }}">
+            <div class="model-btn-label">{{ info.label }}</div>
+            <div class="model-btn-desc">{{ info.description[:120] }}{% if info.description|length > 120 %}…{% endif %}</div>
+          </button>
+          {% endfor %}
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Parameters</div>
+        <div class="param-form" id="pd-param-form"></div>
+        <hr class="card-divider"/>
+        <button class="btn btn-primary w-full" id="pd-run-btn">
+          <span id="pd-spinner" class="spinner hidden"></span>
+          Compute PD
+        </button>
+        <div class="mt-1" style="text-align:center">
+          <div class="text-muted text-xs mb-1">Result</div>
+          <div class="result-badge amber" id="pd-result-badge">—</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT: Charts + log -->
+    <div>
+      <div class="chart-box">
+        <div class="chart-title">Factor Sensitivity (Tornado)</div>
+        <div id="pd-tornado-chart" style="min-height:280px"></div>
+      </div>
+
+      <div id="merton-fig-box" class="chart-box hidden">
+        <div class="chart-title">Merton Asset Value Paths</div>
+        <div id="merton-asset-chart" style="min-height:280px"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Computation Log</div>
+        <div class="log-terminal" id="pd-log">Run model to see step-by-step trace…</div>
+      </div>
+
+      <!-- Model explainer cards -->
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:0.75rem;margin-top:1rem">
+        <div class="card">
+          <div class="card-title" style="color:var(--accent)">Logistic Regression</div>
+          <div class="text-sm text-muted">
+            Wilson (1997) CreditPortfolioView. Maps macro factor vector to default probability via logistic link.
+            <br><br><code style="color:var(--text-primary);font-size:0.75rem">logit(PD) = β·X</code>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title" style="color:var(--accent)">Merton Structural</div>
+          <div class="text-sm text-muted">
+            Black-Scholes-Merton (1974). Firm defaults when asset value V_T &lt; D at maturity.
+            <br><br><code style="color:var(--text-primary);font-size:0.75rem">PD = N(−d₂)</code>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title" style="color:var(--accent)">Survival / CIR</div>
+          <div class="text-sm text-muted">
+            Reduced-form intensity model. Default intensity λ follows CIR; closed-form survival probability.
+            <br><br><code style="color:var(--text-primary);font-size:0.75rem">S(T) = A·exp(−B·λ₀)</code>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const schemas = {{ schemas | safe }};
+document.addEventListener("DOMContentLoaded", () => initPDPage(schemas));
+</script>
+{% endblock %}

@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{% block title %}Credit Risk Analytics{% endblock %}</title>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+
+  <!-- Plotly -->
+  <script src="https://cdn.plot.ly/plotly-2.32.0.min.js" charset="utf-8"></script>
+
+  <!-- App CSS -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+
+  {% block head %}{% endblock %}
+</head>
+<body>
+
+<!-- ── Top Navigation ── -->
+<nav class="topnav">
+  <a class="topnav-brand" href="/">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--accent)">
+      <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+    </svg>
+    Credit<span>Risk</span> Analytics
+  </a>
+
+  <ul class="topnav-links">
+    <li><a href="/"          {% if active=='dashboard'  %}class="active"{% endif %}>Dashboard</a></li>
+    <li><a href="/pd/"       {% if active=='pd'         %}class="active"{% endif %}>PD Models</a></li>
+    <li><a href="/lgd/"      {% if active=='lgd'        %}class="active"{% endif %}>LGD Models</a></li>
+    <li><a href="/ead/"      {% if active=='ead'        %}class="active"{% endif %}>EAD Models</a></li>
+    <li><a href="/comparison/"{% if active=='comparison' %}class="active"{% endif %}>Hypothesis Lab</a></li>
+  </ul>
+
+  <div class="topnav-right">
+    <span class="topnav-badge">EL = PD × LGD × EAD</span>
+    <span class="topnav-badge" style="background:rgba(34,197,94,.12);color:var(--green)">ECB Data</span>
+  </div>
+</nav>
+
+<!-- ── Page content ── -->
+<main>
+  {% block content %}{% endblock %}
+</main>
+
+<!-- ── Toast stack ── -->
+<div class="toast-stack" id="toast-stack"></div>
+
+<!-- ── App JS ── -->
+<script src="{{ url_for('static', filename='js/app.js') }}"></script>
+{% block scripts %}{% endblock %}
+
+</body>
+</html>

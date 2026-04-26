@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+{% set active = "ead" %}
+{% block title %}EAD Models — Credit Risk Analytics{% endblock %}
+
+{% block content %}
+<div class="page-wrapper">
+  <div class="page-header">
+    <div class="page-title">Exposure at Default Models</div>
+    <div class="page-sub">Model the exposure at the time of default. Includes CCF, macro-driven utilization, and Markov transition approaches.</div>
+  </div>
+
+  <div class="split-layout">
+
+    <!-- LEFT -->
+    <div>
+      <div class="card mb-2">
+        <div class="card-title">Select EAD Model</div>
+        <div class="model-picker">
+          {% for key, info in models.items() %}
+          <button class="model-btn ead-model-btn {% if loop.first %}active{% endif %}"
+                  data-model="{{ key }}">
+            <div class="model-btn-label">{{ info.label }}</div>
+            <div class="model-btn-desc">{{ info.description[:120] }}{% if info.description|length > 120 %}…{% endif %}</div>
+          </button>
+          {% endfor %}
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Parameters</div>
+        <div class="param-form" id="ead-param-form"></div>
+        <hr class="card-divider"/>
+        <button class="btn btn-primary w-full" id="ead-run-btn">
+          <span id="ead-spinner" class="spinner hidden"></span>
+          Compute EAD
+        </button>
+        <div class="mt-1" style="text-align:center">
+          <div class="text-muted text-xs mb-1">Exposure at Default</div>
+          <div class="result-badge" id="ead-result-badge">—</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT -->
+    <div>
+      <div class="card mb-2">
+        <div class="card-title">Computation Log</div>
+        <div class="log-terminal" id="ead-log">Run model to see step-by-step trace…</div>
+      </div>
+
+      <!-- Explainers -->
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:0.75rem">
+        <div class="card">
+          <div class="card-title" style="color:var(--amber)">CCF Model</div>
+          <div class="text-sm text-muted">
+            <code style="color:var(--text-primary);font-size:0.75rem">EAD = Drawn + CCF × Undrawn</code>
+            <br><br>Product-specific CCF from regulatory SA or internal estimates. Stress adjustment available.
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title" style="color:var(--amber)">Utilization Regression</div>
+          <div class="text-sm text-muted">
+            <code style="color:var(--text-primary);font-size:0.75rem">logit(U) = α·X_macro</code>
+            <br><br>Borrowers draw down credit lines as conditions deteriorate (GDP ↓, UE ↑).
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title" style="color:var(--amber)">Markov Transition</div>
+          <div class="text-sm text-muted">
+            3-state Markov chain: Low / Med / High utilization. Macro-conditioned transition matrix. EAD = E[util] × limit.
+          </div>
+        </div>
+      </div>
+
+      <div class="card mt-2">
+        <div class="card-title">EAD Framework Note</div>
+        <div class="text-sm text-muted" style="line-height:1.8">
+          Under Basel III / IFRS 9, EAD represents the expected outstanding balance at the time of default, including
+          undrawn committed amounts drawn down by the borrower as financial difficulties increase.
+          <br>
+          The CCF model applies a conversion factor to off-balance-sheet commitments.
+          The utilization and Markov models capture the pro-cyclical increase in drawdowns during stress.
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const schemas = {{ schemas | safe }};
+document.addEventListener("DOMContentLoaded", () => initEADPage(schemas));
+</script>
+{% endblock %}
