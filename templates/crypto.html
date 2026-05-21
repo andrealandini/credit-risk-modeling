@@ -1,0 +1,220 @@
+{% extends "base.html" %}
+{% set active = "crypto" %}
+{% block title %}Crypto Markets — Analytics{% endblock %}
+
+{% block content %}
+<div class="page-wrapper">
+
+  <!-- Header + coin selector -->
+  <div class="page-header">
+    <div class="flex items-center gap-2" style="justify-content:space-between;flex-wrap:wrap;align-items:flex-start">
+      <div>
+        <div class="page-title" id="page-coin-title">
+          <span id="title-coin">{{ coin }}</span> Market Analytics
+        </div>
+        <div class="page-sub">Year-to-date · Live data via CoinGecko</div>
+      </div>
+      <div class="coin-selector" id="coin-selector">
+        {% for c in coins %}
+        <button class="coin-btn {% if c == coin %}active{% endif %}" data-coin="{{ c }}">{{ c }}</button>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading bar -->
+  <div id="loading-bar" class="hidden" style="height:2px;background:var(--accent);border-radius:1px;margin-bottom:1.25rem;animation:progress-anim 1.4s ease infinite"></div>
+
+  <!-- Error banner -->
+  <div id="error-banner" class="hidden" style="background:rgba(239,68,68,.1);border:1px solid var(--red);border-radius:var(--radius);padding:.75rem 1rem;margin-bottom:1.25rem;color:var(--red);font-size:.83rem"></div>
+
+  <!-- ── KPI strip ── -->
+  <div class="kpi-grid">
+    <div class="kpi-card">
+      <div class="kpi-label">Price</div>
+      <div class="kpi-value text-mono" id="kpi-price">—</div>
+      <div class="kpi-sub">Current USD</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">YTD Return</div>
+      <div class="kpi-value text-mono" id="kpi-ytd-return">—</div>
+      <div class="kpi-sub">Since Jan 1</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">30d Volatility</div>
+      <div class="kpi-value amber text-mono" id="kpi-vol">—</div>
+      <div class="kpi-sub">Annualized</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Sharpe (YTD)</div>
+      <div class="kpi-value text-mono" id="kpi-sharpe">—</div>
+      <div class="kpi-sub">Ann. ret / ann. vol</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Max Drawdown YTD</div>
+      <div class="kpi-value red text-mono" id="kpi-max-dd">—</div>
+      <div class="kpi-sub">From YTD peak</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Current Drawdown</div>
+      <div class="kpi-value text-mono" id="kpi-cur-dd">—</div>
+      <div class="kpi-sub">From recent high</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Market Cap</div>
+      <div class="kpi-value text-mono" id="kpi-mcap">—</div>
+      <div class="kpi-sub">USD</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">24h Volume</div>
+      <div class="kpi-value text-mono" id="kpi-vol24h">—</div>
+      <div class="kpi-sub">USD</div>
+    </div>
+  </div>
+
+  <!-- ── Price + Volatility ── -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.25rem;margin-bottom:1.25rem">
+    <div class="chart-box">
+      <div class="chart-title">Price — Year to Date</div>
+      <div id="chart-price" style="height:280px"></div>
+    </div>
+    <div class="chart-box">
+      <div class="chart-title">30-Day Rolling Annualized Volatility</div>
+      <div id="chart-vol" style="height:280px"></div>
+    </div>
+  </div>
+
+  <!-- ── Drawdown + Volume ── -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.25rem;margin-bottom:1.25rem">
+    <div class="chart-box">
+      <div class="chart-title">Drawdown from YTD Peak</div>
+      <div id="chart-dd" style="height:260px"></div>
+    </div>
+    <div class="chart-box">
+      <div class="chart-title">24h Trading Volume (YTD)</div>
+      <div id="chart-volume" style="height:260px"></div>
+    </div>
+  </div>
+
+  <!-- ── Market Microstructure / Liquidity ── -->
+  <div class="chart-box" style="margin-bottom:1.25rem">
+    <div class="chart-title">Market Depth — Volume by Exchange</div>
+    <div style="display:grid;grid-template-columns:2fr 1fr;gap:1.5rem;align-items:start">
+      <div id="chart-depth" style="height:280px"></div>
+
+      <div style="display:flex;flex-direction:column;gap:0.85rem;padding-top:0.25rem">
+        <div class="microstructure-kpi">
+          <div class="kpi-label">Best Bid-Ask Spread</div>
+          <div class="kpi-value green text-mono" id="kpi-spread" style="font-size:1.15rem">—</div>
+          <div class="kpi-sub">Top USD pair across exchanges</div>
+        </div>
+        <div class="microstructure-kpi">
+          <div class="kpi-label">Volume / Market Cap</div>
+          <div class="kpi-value text-mono" id="kpi-vol-mcap" style="font-size:1.15rem">—</div>
+          <div class="kpi-sub">Amihud liquidity proxy — higher = more liquid</div>
+        </div>
+        <div class="microstructure-kpi">
+          <div class="kpi-label">About the Metrics</div>
+          <div class="text-muted text-xs" style="line-height:1.7;margin-top:.3rem">
+            <div><strong>Spread:</strong> bid-ask as % of mid, from CoinGecko tickers (best USD/USDT/USDC pair).</div>
+            <div style="margin-top:.4rem"><strong>Vol / MCap:</strong> daily volume relative to market cap. A proxy for Amihud's illiquidity ratio — higher means tighter impact per dollar traded.</div>
+            <div style="margin-top:.4rem"><strong>Depth chart:</strong> 24h USD-equivalent volume per exchange. Concentration in fewer venues signals shallower aggregate order books.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<style>
+@keyframes progress-anim {
+  0%   { transform: scaleX(0); transform-origin: left; }
+  50%  { transform: scaleX(1); transform-origin: left; }
+  51%  { transform: scaleX(1); transform-origin: right; }
+  100% { transform: scaleX(0); transform-origin: right; }
+}
+.microstructure-kpi {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: .85rem 1rem;
+}
+</style>
+
+<script>
+const INITIAL_COIN = {{ coin | tojson }};
+
+function setText(id, val) {
+  const el = document.getElementById(id);
+  if (el) el.textContent = val;
+}
+
+function setKpi(id, val, cls) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.textContent = val;
+  el.className = "kpi-value text-mono" + (cls ? " " + cls : "");
+}
+
+function renderChart(id, jsonStr) {
+  const fig = JSON.parse(jsonStr);
+  Plotly.react(id, fig.data, fig.layout, { responsive: true, displayModeBar: false });
+}
+
+async function loadCoinData(coin) {
+  document.getElementById("loading-bar").classList.remove("hidden");
+  document.getElementById("error-banner").classList.add("hidden");
+  setText("title-coin", coin);
+
+  try {
+    const res = await fetch(`/crypto/api/data?coin=${encodeURIComponent(coin)}`);
+    const data = await res.json();
+
+    if (data.error) {
+      document.getElementById("error-banner").textContent = "Error: " + data.error;
+      document.getElementById("error-banner").classList.remove("hidden");
+      return;
+    }
+
+    const k = data.kpis;
+    setKpi("kpi-price",      k.price);
+    setKpi("kpi-ytd-return", k.ytd_return, k.ytd_cls);
+    setKpi("kpi-vol",        k.vol_30d, "amber");
+    setKpi("kpi-sharpe",     k.sharpe, parseFloat(k.sharpe) >= 0 ? "green" : "red");
+    setKpi("kpi-max-dd",     k.max_dd, "red");
+    setKpi("kpi-cur-dd",     k.cur_dd, k.cur_dd_cls);
+    setKpi("kpi-mcap",       k.market_cap);
+    setKpi("kpi-vol24h",     k.vol_24h);
+    setKpi("kpi-spread",     k.spread_bps, "green");
+    setKpi("kpi-vol-mcap",   k.vol_mcap);
+
+    renderChart("chart-price",  data.price_fig);
+    renderChart("chart-vol",    data.vol_fig);
+    renderChart("chart-dd",     data.dd_fig);
+    renderChart("chart-volume", data.volume_fig);
+    renderChart("chart-depth",  data.depth_fig);
+
+  } catch (e) {
+    document.getElementById("error-banner").textContent = "Network error: " + e.message;
+    document.getElementById("error-banner").classList.remove("hidden");
+  } finally {
+    document.getElementById("loading-bar").classList.add("hidden");
+  }
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  document.querySelectorAll(".coin-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      document.querySelectorAll(".coin-btn").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      loadCoinData(btn.dataset.coin);
+    });
+  });
+
+  loadCoinData(INITIAL_COIN);
+});
+</script>
+{% endblock %}

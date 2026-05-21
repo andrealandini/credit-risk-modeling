@@ -21,24 +21,25 @@
 
 <!-- ── Top Navigation ── -->
 <nav class="topnav">
-  <a class="topnav-brand" href="/">
+  <a class="topnav-brand" href="/crypto/">
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--accent)">
       <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
     </svg>
-    Credit<span>Risk</span> Analytics
+    Market<span>Analytics</span>
   </a>
 
   <ul class="topnav-links">
-    <li><a href="/"          {% if active=='dashboard'  %}class="active"{% endif %}>Dashboard</a></li>
-    <li><a href="/pd/"       {% if active=='pd'         %}class="active"{% endif %}>PD Models</a></li>
-    <li><a href="/lgd/"      {% if active=='lgd'        %}class="active"{% endif %}>LGD Models</a></li>
-    <li><a href="/ead/"      {% if active=='ead'        %}class="active"{% endif %}>EAD Models</a></li>
+    <li><a href="/crypto/"    {% if active=='crypto'     %}class="active"{% endif %}>Crypto Markets</a></li>
+    <li><a href="/"           {% if active=='dashboard'  %}class="active"{% endif %}>Credit Risk</a></li>
+    <li><a href="/pd/"        {% if active=='pd'         %}class="active"{% endif %}>PD Models</a></li>
+    <li><a href="/lgd/"       {% if active=='lgd'        %}class="active"{% endif %}>LGD Models</a></li>
+    <li><a href="/ead/"       {% if active=='ead'        %}class="active"{% endif %}>EAD Models</a></li>
     <li><a href="/comparison/"{% if active=='comparison' %}class="active"{% endif %}>Hypothesis Lab</a></li>
   </ul>
 
   <div class="topnav-right">
+    <span class="topnav-badge" style="background:rgba(34,197,94,.12);color:var(--green)">Live · CoinGecko</span>
     <span class="topnav-badge">EL = PD × LGD × EAD</span>
-    <span class="topnav-badge" style="background:rgba(34,197,94,.12);color:var(--green)">ECB Data</span>
   </div>
 </nav>
 

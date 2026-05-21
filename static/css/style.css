@@ -455,6 +455,38 @@ a:hover { text-decoration: underline; }
   white-space: nowrap;
 }
 
+/* ── Coin selector ───────────────────────────────────────────────── */
+.coin-selector {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+
+.coin-btn {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  padding: 0.45rem 1.1rem;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s, background 0.15s;
+}
+
+.coin-btn:hover {
+  border-color: var(--accent);
+  color: var(--text-primary);
+}
+
+.coin-btn.active {
+  border-color: var(--accent);
+  background: var(--accent-dim);
+  color: var(--accent);
+}
+
 /* ── Utility ─────────────────────────────────────────────────────── */
 .flex        { display: flex; }
 .items-center{ align-items: center; }
