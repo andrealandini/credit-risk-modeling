@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+{% set active = "dashboard" %}
+{% block title %}Dashboard — Credit Risk Analytics{% endblock %}
+
+{% block content %}
+<div class="page-wrapper">
+
+  <!-- Header -->
+  <div class="page-header">
+    <div class="flex items-center gap-2" style="justify-content:space-between;flex-wrap:wrap">
+      <div>
+        <div class="page-title">Portfolio Dashboard</div>
+        <div class="page-sub">
+          ECB macro panel · {{ n_obs }} observations · {{ data_range }}
+          · Stack: <strong>{{ pd_model_name }}</strong> / <strong>{{ lgd_model_name }}</strong> / <strong>{{ ead_model_name }}</strong>
+        </div>
+      </div>
+      <div class="flex items-center gap-1" style="flex-wrap:wrap">
+        <span class="tag">5,000 MC paths</span>
+        <span class="tag">4Q horizon</span>
+        <span class="tag">Vasicek single-factor</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- KPI strip -->
+  <div class="kpi-grid">
+    <div class="kpi-card">
+      <div class="kpi-label">Expected Loss</div>
+      <div class="kpi-value amber">{{ kpis.el }}</div>
+      <div class="kpi-sub">EL = PD × LGD × EAD</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Unexpected Loss</div>
+      <div class="kpi-value">{{ kpis.ul }}</div>
+      <div class="kpi-sub">σ of loss distribution</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">VaR 99%</div>
+      <div class="kpi-value red">{{ kpis.var_99 }}</div>
+      <div class="kpi-sub">99th percentile loss</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">VaR 99.9%</div>
+      <div class="kpi-value red">{{ kpis.var_999 }}</div>
+      <div class="kpi-sub">Basel regulatory tail</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">ES 97.5%</div>
+      <div class="kpi-value purple">{{ kpis.es_975 }}</div>
+      <div class="kpi-sub">Expected Shortfall</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">EL / Notional</div>
+      <div class="kpi-value green">{{ kpis.el_rate }}</div>
+      <div class="kpi-sub">Portfolio EL rate</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Portfolio Notional</div>
+      <div class="kpi-value">{{ kpis.notional }}</div>
+      <div class="kpi-sub">200 obligors · avg €1M</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">MC Paths</div>
+      <div class="kpi-value">{{ kpis.n_paths }}</div>
+      <div class="kpi-sub">Horizon: 4Q</div>
+    </div>
+  </div>
+
+  <!-- Charts grid -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.25rem;margin-bottom:1.25rem">
+    <div class="chart-box">
+      <div class="chart-title">Monte Carlo Loss Distribution</div>
+      <div id="dash-loss-chart" style="height:300px"></div>
+    </div>
+    <div class="chart-box">
+      <div class="chart-title">Simulated PD Term Structure</div>
+      <div id="dash-pdts-chart" style="height:300px"></div>
+    </div>
+  </div>
+
+  <div class="chart-box">
+    <div class="chart-title">ECB Macroeconomic Panel (2000–2024)</div>
+    <div id="dash-macro-chart" style="height:320px"></div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.25rem;margin-top:1.25rem">
+    <div class="chart-box">
+      <div class="chart-title">Factor Correlation Matrix</div>
+      <div id="dash-corr-chart" style="height:320px"></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Quick Actions</div>
+      <div style="display:flex;flex-direction:column;gap:0.75rem">
+        <a href="/pd/" class="btn btn-outline">⟶ Configure PD Model</a>
+        <a href="/lgd/" class="btn btn-outline">⟶ Configure LGD Model</a>
+        <a href="/ead/" class="btn btn-outline">⟶ Configure EAD Model</a>
+        <a href="/comparison/" class="btn btn-primary">⟶ Run Scenario Comparison</a>
+      </div>
+      <hr class="card-divider"/>
+      <div class="card-title">About this App</div>
+      <div class="text-muted text-sm" style="line-height:1.8">
+        <div><strong>PD:</strong> Logistic Regression · Merton · Survival/CIR</div>
+        <div><strong>LGD:</strong> Beta Regression · Workout DCF · Downturn/BCBS</div>
+        <div><strong>EAD:</strong> CCF · Utilization Regression · Markov Chain</div>
+        <div style="margin-top:0.5rem">Monte Carlo engine: Vasicek single-factor correlated defaults with stochastic LGD.</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const macroFig = {{ macro_fig | safe }};
+const lossFig  = {{ loss_fig  | safe }};
+const pdTsFig  = {{ pd_ts_fig | safe }};
+const corrFig  = {{ corr_fig  | safe }};
+document.addEventListener("DOMContentLoaded", () => initDashboard(macroFig, lossFig, pdTsFig, corrFig));
+</script>
+{% endblock %}

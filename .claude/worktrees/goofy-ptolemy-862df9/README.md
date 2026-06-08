@@ -68,20 +68,10 @@ app.py                  # Entry point: create_app()
 
 ## Setup
 
-**Requires Python 3.11 or 3.12** (Python 3.13 is not supported — `scipy==1.13.1` does not build against it)
+**Requires Python 3.11+**
 
-**Option A — mamba/conda (recommended):**
 ```bash
-mamba create -n credit-risk python=3.11
-mamba activate credit-risk
-pip install -r requirements.txt
-python app.py
-```
-
-**Option B — venv with Python 3.11:**
-```bash
-# Install Python 3.11 if needed: brew install python@3.11
-python3.11 -m venv .venv
+python -m venv .venv
 source .venv/bin/activate      # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
 python app.py

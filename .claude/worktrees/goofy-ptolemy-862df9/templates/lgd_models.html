@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+{% set active = "lgd" %}
+{% block title %}LGD Models — Credit Risk Analytics{% endblock %}
+
+{% block content %}
+<div class="page-wrapper">
+  <div class="page-header">
+    <div class="page-title">Loss Given Default Models</div>
+    <div class="page-sub">Configure recovery assumptions and collateral. The sensitivity table shows Δ LGD per parameter shock.</div>
+  </div>
+
+  <div class="split-layout">
+
+    <!-- LEFT -->
+    <div>
+      <div class="card mb-2">
+        <div class="card-title">Select LGD Model</div>
+        <div class="model-picker">
+          {% for key, info in models.items() %}
+          <button class="model-btn lgd-model-btn {% if loop.first %}active{% endif %}"
+                  data-model="{{ key }}">
+            <div class="model-btn-label">{{ info.label }}</div>
+            <div class="model-btn-desc">{{ info.description[:120] }}{% if info.description|length > 120 %}…{% endif %}</div>
+          </button>
+          {% endfor %}
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Parameters</div>
+        <div class="param-form" id="lgd-param-form"></div>
+        <hr class="card-divider"/>
+        <button class="btn btn-primary w-full" id="lgd-run-btn">
+          <span id="lgd-spinner" class="spinner hidden"></span>
+          Compute LGD
+        </button>
+        <div class="mt-1" style="text-align:center">
+          <div class="text-muted text-xs mb-1">Mean LGD</div>
+          <div class="result-badge green" id="lgd-result-badge">—</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT -->
+    <div>
+      <div class="card mb-2">
+        <div class="card-title">Parameter Sensitivity</div>
+        <div style="overflow-x:auto">
+          <table class="comp-table" id="lgd-sens-table">
+            <thead><tr>
+              <th>Parameter</th><th>Base LGD</th><th>+Shock</th><th>−Shock</th><th>Δ Up</th><th>Δ Down</th>
+            </tr></thead>
+            <tbody><tr><td colspan="6" class="text-muted text-xs" style="padding:1rem">Run model to see sensitivity…</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Computation Log</div>
+        <div class="log-terminal" id="lgd-log">Run model to see step-by-step trace…</div>
+      </div>
+
+      <!-- Model explainers -->
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:0.75rem;margin-top:1rem">
+        <div class="card">
+          <div class="card-title" style="color:var(--green)">Beta Regression</div>
+          <div class="text-sm text-muted">
+            LGD ~ Beta(α, β). Mean LGD driven by seniority, collateral, LTV, and macro conditions. Returns distribution quantiles.
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title" style="color:var(--green)">Workout LGD</div>
+          <div class="text-sm text-muted">
+            DCF approach: PV of staged recovery cash flows minus legal/admin costs, discounted at risk-free + premium.
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title" style="color:var(--green)">Downturn / BCBS</div>
+          <div class="text-sm text-muted">
+            Through-the-cycle LGD + macro-driven stress add-on. Compliant with EBA/BCBS downturn LGD guidelines.
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const schemas = {{ schemas | safe }};
+document.addEventListener("DOMContentLoaded", () => initLGDPage(schemas));
+</script>
+{% endblock %}
